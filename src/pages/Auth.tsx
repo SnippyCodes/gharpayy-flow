@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { lovable } from '@/integrations/lovable/index';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,12 +10,22 @@ import { Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Auth = () => {
+  const { session } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [mode, setMode] = useState<'login' | 'signup' | 'forgot'>('login');
   const [email, setEmail] = useState('demo@gharpayy.com');
   const [password, setPassword] = useState('demo1234');
   const [fullName, setFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (session) {
+      const from = (location.state as any)?.from?.pathname || '/dashboard';
+      navigate(from, { replace: true });
+    }
+  }, [session, navigate, location]);
 
   // Auto-create demo account on first visit
   const ensureDemoAccount = async () => {
@@ -67,10 +78,13 @@ const Auth = () => {
 
   const handleGoogle = async () => {
     setLoading(true);
-    const { error } = await lovable.auth.signInWithOAuth('google', {
-      redirect_uri: window.location.origin,
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/dashboard`,
+      }
     });
-    if (error) toast.error(error instanceof Error ? error.message : 'Google sign-in failed');
+    if (error) toast.error(error.message);
     setLoading(false);
   };
 
