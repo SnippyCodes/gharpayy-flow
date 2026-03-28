@@ -37,7 +37,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
+        <BrowserRouter basename="/gharpayy-flow/">
           <Routes>
             {/* Public customer-facing routes */}
             <Route path="/" element={<LandingPage />} />
